@@ -101,7 +101,14 @@ export default async function PartidoPage({ params }: { params: { id: string } }
       <div className="grid gap-6 md:grid-cols-2">
         {/* Votación ¿quién gana? */}
         <section className="card p-5">
-          <PollWidget pollId={poll.id} question={poll.question} options={poll.options} />
+          {poll ? (
+            <PollWidget pollId={poll.id} question={poll.question} options={poll.options} />
+          ) : (
+            <div className="text-sm text-muted">
+              <p className="font-title font-bold text-ink">¿Quién gana?</p>
+              <p className="mt-2">La votación estará disponible en un momento.</p>
+            </div>
+          )}
         </section>
 
         {/* Predicción rápida */}

@@ -182,7 +182,7 @@ export async function groupStandings(): Promise<Record<string, GroupRow[]>> {
 // ---------------------------------------------------------------------
 // Encuestas y votos (1 voto por hash de IP, modificable)
 // ---------------------------------------------------------------------
-export async function getOrCreateMatchPoll(matchId: string): Promise<Poll> {
+export async function getOrCreateMatchPoll(matchId: string): Promise<Poll | null> {
   const match = await getMatch(matchId);
   const question = "¿Quién gana?";
   const options = [match?.home_team?.name || "Local", "Empate", match?.away_team?.name || "Visitante"];
@@ -192,12 +192,19 @@ export async function getOrCreateMatchPoll(matchId: string): Promise<Poll> {
     if (!poll) { poll = { id: uid(), match_id: matchId, question, options }; s.polls.push(poll); }
     return poll;
   }
-  const db = sbAdmin();
-  const { data: existing } = await db.from("polls").select("*").eq("match_id", matchId).limit(1);
+  // Lectura con el cliente público (anon) — siempre disponible.
+  const { data: existing } = await sbPublic().from("polls").select("*").eq("match_id", matchId).limit(1);
   if (existing?.length) return existing[0];
-  const { data, error } = await db.from("polls").insert({ match_id: matchId, question, options }).select().single();
-  if (error) throw error;
-  return data;
+  // Crear requiere service role; si falta o falla, NO tumbamos la página:
+  // devolvemos null y el detalle del partido se muestra sin la encuesta.
+  try {
+    const { data, error } = await sbAdmin().from("polls").insert({ match_id: matchId, question, options }).select().single();
+    if (error) throw error;
+    return data;
+  } catch (e) {
+    console.error("No se pudo crear la encuesta del partido (¿falta SUPABASE_SERVICE_ROLE_KEY?):", e);
+    return null;
+  }
 }
 
 export async function getPolls(): Promise<Poll[]> {

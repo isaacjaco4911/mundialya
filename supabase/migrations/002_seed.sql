@@ -186,6 +186,15 @@ insert into venues (name, address, neighborhood, city, phone, photo_url, descrip
 insert into polls (match_id, question, options)
 values (null, '¿Quién será campeón del Mundial 2026?', '["Argentina","Brasil","Francia","España","Colombia","Otro"]'::jsonb);
 
+-- Una encuesta "¿Quién gana?" por cada partido (así la página de detalle
+-- solo LEE y nunca necesita escribir al cargarse). Idempotente.
+insert into polls (match_id, question, options)
+select m.id, '¿Quién gana?', jsonb_build_array(h.name, 'Empate', a.name)
+from matches m
+join teams h on m.home_team_id = h.id
+join teams a on m.away_team_id = a.id
+where not exists (select 1 from polls p where p.match_id = m.id);
+
 insert into banners (title, image_url, link, placement, active, priority) values
   ('Tu marca aquí — patrocina MundialYa', null, '/metricas', 'home_top', true, 1),
   ('Espacio disponible para patrocinador', null, '/metricas', 'match', true, 1);

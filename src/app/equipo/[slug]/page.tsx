@@ -24,7 +24,13 @@ async function getFanPoll(teamId: string, teamName: string) {
   const q = `¿${teamName} llega a la final?`;
   const existing = polls.find((p) => p.match_id === null && p.question === q);
   if (existing) return existing;
-  return adminUpsert("polls", { match_id: null, question: q, options: ["¡Sí, de una! 🏆", "Llega lejos, pero no", "No creo"] });
+  // Crear requiere service role; si falla, no tumbamos la página de la selección.
+  try {
+    return await adminUpsert("polls", { match_id: null, question: q, options: ["¡Sí, de una! 🏆", "Llega lejos, pero no", "No creo"] });
+  } catch (e) {
+    console.error("No se pudo crear la encuesta de fans (¿falta SUPABASE_SERVICE_ROLE_KEY?):", e);
+    return null;
+  }
 }
 
 export default async function EquipoPage({ params }: { params: { slug: string } }) {
@@ -81,9 +87,11 @@ export default async function EquipoPage({ params }: { params: { slug: string } 
           )}
         </section>
 
-        <section className="card h-fit p-5">
-          <PollWidget pollId={poll.id} question={poll.question} options={poll.options} />
-        </section>
+        {poll && (
+          <section className="card h-fit p-5">
+            <PollWidget pollId={poll.id} question={poll.question} options={poll.options} />
+          </section>
+        )}
       </div>
     </div>
   );
