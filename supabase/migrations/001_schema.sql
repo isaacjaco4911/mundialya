@@ -167,6 +167,14 @@ begin
   end loop;
 end $$;
 
+-- Privilegios de tabla: el usuario público (anon) y autenticado necesitan
+-- SELECT a nivel de tabla, ADEMÁS de las políticas RLS de arriba. En algunos
+-- proyectos los grants por defecto no se aplican, así que los damos explícito.
+-- (Las escrituras siguen siendo solo por service_role, que ignora RLS.)
+grant usage on schema public to anon, authenticated;
+grant select on all tables in schema public to anon, authenticated;
+alter default privileges in schema public grant select on tables to anon, authenticated;
+
 -- ---------------------------------------------------------------------
 -- Funciones RPC para contadores de visitas
 -- ---------------------------------------------------------------------
