@@ -52,14 +52,13 @@ Abre http://localhost:3000. Sin Supabase configurado la app corre en **modo demo
 | `/metricas` | Métricas públicas para vender publicidad |
 | `/admin` | Panel completo (partidos, equipos, sitios, banners, popups, encuestas, ligas, estadísticas) |
 
-## 📝 Completar el calendario real
+## 📝 Calendario
 
-El seed incluye la jornada 1 (12 partidos) como ejemplo. Para cargar los 104 partidos del torneo (11 jun – 19 jul 2026):
+El seed ya incluye **los 72 partidos completos de la fase de grupos** (48 selecciones, 12 grupos, 11–27 jun 2026) con horas en Bogotá (UTC−5). Para completar el torneo:
 
-- **Opción A:** desde `/admin` → Partidos → "+ Nuevo" (kickoff en ISO UTC; Bogotá = UTC−5, ej. 19:00 Bogotá = `2026-06-12T00:00:00Z` del día siguiente).
-- **Opción B:** agrega INSERTs en `002_seed.sql` siguiendo el patrón existente.
-- Los 6 cupos de repechaje (marzo 2026) se actualizan desde `/admin` → Selecciones (nombre + URL de bandera de flagcdn.com).
-- Los cruces de eliminatorias se crean cuando termine la fase de grupos (avanzan los 2 primeros de cada grupo + los 8 mejores terceros).
+- **Eliminatorias (32avos → final, 28 jun – 19 jul):** se crean desde `/admin` → Partidos → "+ Nuevo" cuando se conozcan los cruces (kickoff en ISO UTC; ej. 14:00 Bogotá = `2026-06-11T19:00:00Z`).
+- Cargar el marcador final de un partido (estado `finished`) dispara el recálculo automático de la polla y de las tablas de grupo.
+- Estadios/sedes son la mejor asignación disponible; ajústalos en `/admin` si cambian.
 
 ## ⚖️ Nota legal (Colombia)
 
