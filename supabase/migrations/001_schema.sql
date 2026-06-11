@@ -167,13 +167,23 @@ begin
   end loop;
 end $$;
 
--- Privilegios de tabla: el usuario público (anon) y autenticado necesitan
--- SELECT a nivel de tabla, ADEMÁS de las políticas RLS de arriba. En algunos
--- proyectos los grants por defecto no se aplican, así que los damos explícito.
--- (Las escrituras siguen siendo solo por service_role, que ignora RLS.)
-grant usage on schema public to anon, authenticated;
+-- Privilegios de tabla. En algunos proyectos los grants por defecto NO se
+-- aplican, así que los damos explícito (los GRANT de tabla aplican a todos
+-- los roles, incluso a service_role que ignora RLS pero SÍ requiere grants):
+--   · anon / authenticated → solo SELECT (lectura pública del sitio).
+--   · service_role → TODO (todas las escrituras de la app y el panel admin
+--     pasan por este rol vía SUPABASE_SERVICE_ROLE_KEY).
+grant usage on schema public to anon, authenticated, service_role;
 grant select on all tables in schema public to anon, authenticated;
+grant all on all tables in schema public to service_role;
+grant all on all sequences in schema public to service_role;
+grant execute on all functions in schema public to anon, authenticated, service_role;
+
+-- Futuras tablas/secuencias/funciones quedan cubiertas automáticamente:
 alter default privileges in schema public grant select on tables to anon, authenticated;
+alter default privileges in schema public grant all on tables to service_role;
+alter default privileges in schema public grant all on sequences to service_role;
+alter default privileges in schema public grant execute on functions to anon, authenticated, service_role;
 
 -- ---------------------------------------------------------------------
 -- Funciones RPC para contadores de visitas
